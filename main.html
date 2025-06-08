@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hamming SEC-DED Kodu Simülatörü</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #3498db;
+        }
+
+        .section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .section h3::before {
+            content: "🔧";
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #219a52);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .memory-display {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            border: 2px solid #34495e;
+        }
+
+        .bit-analysis {
+            background: #ffffff;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .bit-row {
+            margin: 8px 0;
+            white-space: nowrap;
+        }
+
+        .bit-cell {
+            display: inline-block;
+            width: 35px;
+            text-align: center;
+            padding: 4px;
+            margin: 1px;
+            border-radius: 4px;
+        }
+
+        .parity-bit {
+            background: #e8f5e8;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .data-bit {
+            background: #e8f4f8;
+            color: #2980b9;
+            font-weight: bold;
+        }
+
+        .overall-parity {
+            background: #fef9e7;
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .error-bit {
+            background: #fadbd8;
+            color: #e74c3c;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .output-log {
+            background: #ffffff;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .log-success {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .log-warning {
+            background: #fef9e7;
+            color: #f39c12;
+        }
+
+        .log-error {
+            background: #fadbd8;
+            color: #e74c3c;
+        }
+
+        .log-info {
+            background: #e8f4f8;
+            color: #2980b9;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .manual-error-group {
+            display: flex;
+            align-items: end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .manual-error-group select {
+            padding: 10px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-ok {
+            background: #27ae60;
+        }
+
+        .status-error {
+            background: #e74c3c;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+
+        /* Notification Styles */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            width: 350px;
+        }
+
+        .notification {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 15px;
+            padding: 20px;
+            border-left: 5px solid;
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            animation: slideIn 0.4s ease forwards;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .notification.error {
+            border-left-color: #e74c3c;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+        }
+
+        .notification.warning {
+            border-left-color: #f39c12;
+            background: linear-gradient(135deg, #fffcf5 0%, #fff4e5 100%);
+        }
+
+        .notification.success {
+            border-left-color: #27ae60;
+            background: linear-gradient(135deg, #f5fff9 0%, #e8f5e8 100%);
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .notification-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-content {
+            color: #333;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .notification-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #999;
+            padding: 5px;
+        }
+
+        .notification-close:hover {
+            color: #333;
+        }
+
+        /* Error Alert Overlay */
+        .error-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(231, 76, 60, 0.1);
+            z-index: 9999;
+            display: none;
+            animation: errorFlash 0.5s ease;
+        }
+
+        .error-overlay.show {
+            display: block;
+        }
+
+        @keyframes errorFlash {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+
+            .notification-container {
+                width: calc(100% - 40px);
+                right: 20px;
+                left: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Error Overlay -->
+    <div class="error-overlay" id="errorOverlay"></div>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Hamming SEC-DED Kodu Simülatörü</h1>
+            <p>Single-Error-Correcting, Double-Error-Detecting Code Simülasyonu</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Veri Girişi ve Kontrol -->
+            <div class="section">
+                <h3>Veri Girişi ve Kontrol</h3>
+                
+                <div class="input-group">
+                    <label for="dataInput">Binary Veri (8, 16 veya 32 bit):</label>
+                    <input type="text" id="dataInput" placeholder="Örnek: 10110101" maxlength="32">
+                </div>
+
+                <button class="btn btn-primary" onclick="encodeData()">
+                    1. 🔧 Kodla ve Belleğe Yaz
+                </button>
+
+                <button class="btn btn-warning" onclick="introduceRandomError()" id="randomErrorBtn" disabled>
+                    2. ⚠️ Rastgele Hata Oluştur
+                </button>
+
+                <button class="btn btn-success" onclick="checkAndCorrect()" id="checkBtn" disabled>
+                    3. ✅ Kontrol Et ve Düzelt
+                </button>
+
+                <button class="btn btn-secondary" onclick="resetSimulation()">
+                    🔄 Sıfırla
+                </button>
+
+                <div class="manual-error-group">
+                    <div>
+                        <label>Manuel Hata Pozisyonu:</label>
+                        <select id="errorPosition" disabled>
+                            <option value="">Pozisyon seçin</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-danger" onclick="introduceManualError()" id="manualErrorBtn" disabled>
+                        🎯 Manuel Hata Oluştur
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bellek Simülasyonu -->
+            <div class="section">
+                <h3>Bellek Simülasyonu</h3>
+                <div class="memory-display" id="memoryDisplay">
+                    <div>MEMORY [0x1000] - BOŞ</div>
+                    <div>Status: <span class="status-indicator"></span>Bekleniyor...</div>
+                </div>
+            </div>
+
+            <!-- Bit Analizi -->
+            <div class="section full-width">
+                <h3>Bit Analizi</h3>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color overall-parity"></div>
+                        <span>Genel Parity (GP)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color parity-bit"></div>
+                        <span>Parity Bit (P)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color data-bit"></div>
+                        <span>Data Bit (D)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color error-bit"></div>
+                        <span>Hatalı Bit</span>
+                    </div>
+                </div>
+
+                <div class="bit-analysis" id="bitAnalysis">
+                    <div style="text-align: center; color: #7f8c8d; padding: 20px;">
+                        Bit analizi için önce veri kodlayın
+                    </div>
+                </div>
+            </div>
+
+            <!-- İşlem Sonuçları -->
+            <div class="section full-width">
+                <h3>İşlem Sonuçları</h3>
+                <div class="output-log" id="outputLog">
+                    <div class="log-entry log-info">
+                        🚀 Hamming SEC-DED Simülatörü başlatıldı. Binary veri girip "Kodla ve Belleğe Yaz" butonuna tıklayın.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global değişkenler
+        let originalData = '';
+        let hammingCode = '';
+        let currentCode = '';
+        let parityCount = 0;
+        let errorPositions = [];
+
+        // Notification System
+        function showNotification(title, message, type = 'info', duration = 5000) {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            const notificationId = 'notification-' + Date.now();
+            
+            const icons = {
+                error: '❌',
+                warning: '⚠️',
+                success: '✅',
+                info: 'ℹ️'
+            };
+
+            notification.className = `notification ${type}`;
+            notification.id = notificationId;
+            notification.innerHTML = `
+                <button class="notification-close" onclick="closeNotification('${notificationId}')">&times;</button>
+                <div class="notification-header">
+                    <div class="notification-icon">${icons[type] || icons.info}</div>
+                    ${title}
+                </div>
+                <div class="notification-content">${message}</div>
+            `;
+
+            container.appendChild(notification);
+
+            // Show animation
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+
+            // Auto hide
+            if (duration > 0) {
+                setTimeout(() => {
+                    closeNotification(notificationId);
+                }, duration);
+            }
+
+            // Play sound
+            playNotificationSound(type);
+
+            // Flash overlay for errors
+            if (type === 'error') {
+                showErrorOverlay();
+            }
+        }
+
+        function closeNotification(id) {
+            const notification = document.getElementById(id);
+            if (notification) {
+                notification.style.animation = 'slideOut 0.4s ease forwards';
+                setTimeout(() => {
+                    notification.remove();
+                }, 400);
+            }
+        }
+
+        function showErrorOverlay() {
+            const overlay = document.getElementById('errorOverlay');
+            overlay.classList.add('show');
+            setTimeout(() => {
+                overlay.classList.remove('show');
+            }, 500);
+        }
+
+        function playNotificationSound(type) {
+            // Create audio context for sound effects
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // Different frequencies for different notification types
+            const frequencies = {
+                error: [800, 400],
+                warning: [600, 400],
+                success: [400, 600],
+                info: [500]
+            };
+
+            const freq = frequencies[type] || frequencies.info;
+            
+            oscillator.frequency.setValueAtTime(freq[0], audioContext.currentTime);
+            if (freq[1]) {
+                oscillator.frequency.setValueAtTime(freq[1], audioContext.currentTime + 0.1);
+            }
+
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+
+        // Hamming kodlama fonksiyonları
+        function calculateParityBitsLength(m) {
+            let r = 0;
+            while (Math.pow(2, r) < (m + r + 1)) {
+                r++;
+            }
+            return r;
+        }
+
+        function insertParityBits(data, r) {
+            let j = 0;
+            let k = 0;
+            let m = data.length;
+            let res = '';
+
+            let totalLength = m + r;
+            for (let i = 1; i <= totalLength; i++) {
+                if (i === Math.pow(2, j)) {
+                    res += '0';
+                    j++;
+                } else {
+                    res += data[k];
+                    k++;
+                }
+            }
+            return res;
+        }
+
+        function calculateParityBits(data, r) {
+            let n = data.length;
+            let dataArray = data.split('');
+            
+            for (let i = 0; i < r; i++) {
+                let index = Math.pow(2, i) - 1;
+                let parity = 0;
+                
+                for (let j = index; j < n; j += Math.pow(2, i + 1)) {
+                    for (let k = 0; k < Math.pow(2, i) && (j + k) < n; k++) {
+                        parity ^= parseInt(dataArray[j + k]);
+                    }
+                }
+                dataArray[index] = (parity % 2).toString();
+            }
+            return dataArray.join('');
+        }
+
+        function addOverallParity(data) {
+            let totalOnes = data.split('').reduce((sum, bit) => sum + parseInt(bit), 0);
+            let overall = (totalOnes % 2 !== 0) ? '1' : '0';
+            return overall + data;
+        }
+
+        function encodeData() {
+            const input = document.getElementById('dataInput').value.trim();
+            
+            if (!input) {
+                showNotification('Hata!', 'Lütfen binary veri girin!', 'error');
+                logMessage('Lütfen binary veri girin!', 'error');
+                return;
+            }
+            
+            if (![8, 16, 32].includes(input.length)) {
+                showNotification('Geçersiz Uzunluk!', 'Veri uzunluğu 8, 16 veya 32 bit olmalıdır!', 'error');
+                logMessage('Veri uzunluğu 8, 16 veya 32 bit olmalıdır!', 'error');
+                return;
+            }
+            
+            if (!/^[01]+$/.test(input)) {
+                showNotification('Geçersiz Karakter!', 'Sadece 0 ve 1 karakterleri girebilirsiniz!', 'error');
+                logMessage('Sadece 0 ve 1 karakterleri girebilirsiniz!', 'error');
+                return;
+            }
+
+            originalData = input;
+            parityCount = calculateParityBitsLength(input.length);
+            let withParity = insertParityBits(input, parityCount);
+            let hammingResult = calculateParityBits(withParity, parityCount);
+            hammingCode = addOverallParity(hammingResult);
+            currentCode = hammingCode;
+            errorPositions = [];
+
+            updateMemoryDisplay();
+            updateBitAnalysis();
+            enableControls();
+
+            showNotification('Başarılı!', `${originalData.length} bitlik veri başarıyla kodlandı!`, 'success');
+            logMessage(`✅ Kodlama tamamlandı!`, 'success');
+            logMessage(`📊 Orijinal veri: ${originalData} (${originalData.length} bit)`, 'info');
+            logMessage(`🔐 Hamming kodu: ${hammingCode} (${hammingCode.length} bit)`, 'info');
+            logMessage(`📏 Parity bit sayısı: ${parityCount}`, 'info');
+            logMessage(`🎯 Genel parity bit: ${hammingCode[0]}`, 'info');
+        }
+
+        function introduceRandomError() {
+            if (!hammingCode) return;
+
+            const errorPos = Math.floor(Math.random() * currentCode.length);
+            const oldBit = currentCode[errorPos];
+            currentCode = introduceError(currentCode, errorPos);
+            const newBit = currentCode[errorPos];
+            
+            errorPositions = [errorPos];
+            updateMemoryDisplay();
+            updateBitAnalysis();
+
+            showNotification('Hata Oluşturuldu!', `Pozisyon ${errorPos}'da bit değiştirildi: ${oldBit} → ${newBit}`, 'warning');
+            logMessage(`⚠️ Rastgele hata oluşturuldu!`, 'warning');
+            logMessage(`📍 Hata pozisyonu: ${errorPos}`, 'info');
+            logMessage(`🔄 ${oldBit} → ${newBit}`, 'info');
+        }
+
+        function introduceManualError() {
+            const errorPos = parseInt(document.getElementById('errorPosition').value);
+            if (isNaN(errorPos) || !hammingCode) return;
+
+            const oldBit = currentCode[errorPos];
+            currentCode = introduceError(currentCode, errorPos);
+            const newBit = currentCode[errorPos];
+            
+            errorPositions = [errorPos];
+            updateMemoryDisplay();
+            updateBitAnalysis();
+
+            showNotification('Manuel Hata!', `Pozisyon ${errorPos}'da manuel hata oluşturuldu: ${oldBit} → ${newBit}`, 'warning');
+            logMessage(`🎯 Manuel hata oluşturuldu!`, 'warning');
+            logMessage(`📍 Hata pozisyonu: ${errorPos}`, 'info');
+            logMessage(`🔄 ${oldBit} → ${newBit}`, 'info');
+        }
+
+        function introduceError(data, pos) {
+            let dataArray = data.split('');
+            dataArray[pos] = dataArray[pos] === '1' ? '0' : '1';
+            return dataArray.join('');
+        }
+
+        function checkAndCorrect() {
+            if (!hammingCode) return;
+            
+            const result = detectAndCorrect(currentCode, parityCount);
+            
+            if (result.hasError) {
+                if (result.errorPosition > 0) {
+                    showNotification('Hata Tespit Edildi!', `Pozisyon ${result.errorPosition}'da tek bit hatası bulundu ve düzeltildi!`, 'warning', 7000);
+                } else {
+                    showNotification('Çift Hata!', 'Çift bit hatası tespit edildi - düzeltilemez!', 'error', 10000);
+                }
+            } else {
+                showNotification('Hata Yok!', 'Veri kontrolünden geçti, herhangi bir hata tespit edilmedi.', 'success');
+            }
+            
+            logMessage(`🔍 Hata kontrolü sonucu: ${result.message}`, result.hasError ? 'warning' : 'success');
+            
+            if (result.errorPosition > 0) {
+                logMessage(`📍 Hatalı bit pozisyonu: ${result.errorPosition}`, 'info');
+                logMessage(`📊 Sendrom değeri: ${result.errorPosition}`, 'info');
+            }
+            
+            if (result.correctedCode !== currentCode) {
+                logMessage(`🔧 Düzeltme yapıldı`, 'success');
+                logMessage(`❌ Önce: ${currentCode}`, 'info');
+                logMessage(`✅ Sonra: ${result.correctedCode}`, 'info');
+                currentCode = result.correctedCode;
+                errorPositions = [];
+                updateMemoryDisplay();
+                updateBitAnalysis();
+            }
+        }
+
+        function detectAndCorrect(fullCode, r) {
+            const overallParity = fullCode[0];
+            const code = fullCode.slice(1);
+            const n = code.length;
+
+            let syndrome = 0;
+            for (let i = 0; i < r; i++) {
+                let index = Math.pow(2, i) - 1;
+                let parity = 0;
+                
+                for (let j = index; j < n; j += Math.pow(2, i + 1)) {
+                    for (let k = 0; k < Math.pow(2, i) && (j + k) < n; k++) {
+                        parity ^= parseInt(code[j + k]);
+                    }
+                }
+                if (parity % 2 !== 0) {
+                    syndrome += Math.pow(2, i);
+                }
+            }
+
+            const recalculatedOverall = code.split('').reduce((sum, bit) => sum + parseInt(bit), 0) % 2;
+            const overallMatch = parseInt(overallParity) === recalculatedOverall;
+
+            if (syndrome === 0 && overallMatch) {
+                return { message: "Hata yok", correctedCode: fullCode, errorPosition: -1, hasError: false };
+            } else if (syndrome === 0 && !overallMatch) {
+                return { message: "Çift hata algılandı - düzeltilemez", correctedCode: fullCode, errorPosition: -1, hasError: true };
+            } else {
+                const pos = syndrome - 1;
+                let codeArray = code.split('');
+                codeArray[pos] = codeArray[pos] === '1' ? '0' : '1';
+                const correctedCode = overallParity + codeArray.join('');
+                return { message: "Tek hata algılandı ve düzeltildi", correctedCode: correctedCode, errorPosition: syndrome, hasError: true };
+            }
+        }
+
+        function updateMemoryDisplay() {
+            const memoryDiv = document.getElementById('memoryDisplay');
+            const hasError = currentCode !== hammingCode;
+            
+            memoryDiv.innerHTML = `
+                <div>MEMORY [0x1000] - ${currentCode ? 'DOLU' : 'BOŞ'}</div>
+                <div>Data: ${currentCode || 'Veri yok'}</div>
+                <div>Status: <span class="status-indicator ${hasError ? 'status-error' : 'status-ok'}"></span>${hasError ? 'HATA TESPİT EDİLDİ' : 'OK'}</div>
+            `;
+        }
+
+        function updateBitAnalysis() {
+            if (!currentCode) return;
+
+            const bitAnalysisDiv = document.getElementById('bitAnalysis');
+            const parityPositions = getParityPositions(originalData.length);
+            
+            let html = '<div class="bit-row"><strong>Pozisyon:</strong> ';
+            for (let i = 0; i < currentCode.length; i++) {
+                const pos = i === 0 ? 'P' : i.toString();
+                html += `<span class="bit-cell">${pos}</span>`;
+            }
+            html += '</div>';
+
+            html += '<div class="bit-row"><strong>Bit:</strong> ';
+            for (let i = 0; i < currentCode.length; i++) {
+                let className = 'bit-cell ';
+                if (errorPositions.includes(i)) {
+                    className += 'error-bit';
+                } else if (i === 0) {
+                    className += 'overall-parity';
+                } else if (parityPositions.includes(i)) {
+                    className += 'parity-bit';
+                } else {
+                    className += 'data-bit';
+                }
+                html += `<span class="${className}">${currentCode[i]}</span>`;
+            }
+            html += '</div>';
+
+            html += '<div class="bit-row"><strong>Tür:</strong> ';
+            for (let i = 0; i < currentCode.length; i++) {
+                let type = '';
+                if (i === 0) type = 'GP';
+                else if (parityPositions.includes(i)) type = 'P';
+                else type = 'D';
+                html += `<span class="bit-cell">${type}</span>`;
+            }
+            html += '</div>';
+
+            html += `<div style="margin-top: 15px; font-size: 0.9rem;">
+                <div><strong>Açıklamalar:</strong></div>
+                <div>GP = Genel Parity (SEC-DED için)</div>
+                <div>P = Parity Bit (Hata kontrolü için)</div>
+                <div>D = Data Bit (Asıl veri)</div>
+                <div><strong>Toplam bit sayısı:</strong> ${currentCode.length}</div>
+            </div>`;
+
+            bitAnalysisDiv.innerHTML = html;
+        }
+
+        function getParityPositions(dataLength) {
+            const r = calculateParityBitsLength(dataLength);
+            const positions = [];
+            for (let i = 0; i < r; i++) {
+                positions.push(Math.pow(2, i));
+            }
+            return positions;
+        }
+
+        function enableControls() {
+            document.getElementById('randomErrorBtn').disabled = false;
+            document.getElementById('checkBtn').disabled = false;
+            document.getElementById('manualErrorBtn').disabled = false;
+            
+            const errorSelect = document.getElementById('errorPosition');
+            errorSelect.disabled = false;
+            errorSelect.innerHTML = '<option value="">Pozisyon seçin</option>';
+            for (let i = 0; i < currentCode.length; i++) {
+                errorSelect.innerHTML += `<option value="${i}">${i}</option>`;
+            }
+        }
+
+        function resetSimulation() {
+            originalData = '';
+            hammingCode = '';
+            currentCode = '';
+            parityCount = 0;
+            errorPositions = [];
+
+            document.getElementById('dataInput').value = '';
+            document.getElementById('randomErrorBtn').disabled = true;
+            document.getElementById('checkBtn').disabled = true;
+            document.getElementById('manualErrorBtn').disabled = true;
+            document.getElementById('errorPosition').disabled = true;
+            document.getElementById('errorPosition').innerHTML = '<option value="">Pozisyon seçin</option>';
+
+            updateMemoryDisplay();
+            document.getElementById('bitAnalysis').innerHTML = '<div style="text-align: center; color: #7f8c8d; padding: 20px;">Bit analizi için önce veri kodlayın</div>';
+            
+            showNotification('Sıfırlama', 'Simülasyon sıfırlandı. Yeni veri girebilirsiniz.', 'info');
+            logMessage('🔄 Simülasyon sıfırlandı. Yeni veri girebilirsiniz.', 'info');
+        }
+
+        function logMessage(message, type = 'info') {
+            const logDiv = document.getElementById('outputLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Sayfa yüklendiğinde başlangıç durumu
+        window.onload = function() {
+            resetSimulation();
+        };
+    </script>
+</body>
+</html>
